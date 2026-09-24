@@ -42,9 +42,18 @@ internal class OfficialEndpoints(cdn: ConfigurationNode) {
 }
 
 internal fun CommentedConfigurationNode.setCdnDefaults() {
-    comment("CDN settings")
-    node("enable").set(false)
-    node("origin").comment("Legacy shared origin; /api and /sessionserver are appended. Optional.").set("")
-    node("api-origin").comment("Base URL for api.mojang.com; no /api prefix is added. Overrides origin.").set("")
-    node("sessionserver-origin").comment("Base URL for sessionserver.mojang.com; no /sessionserver prefix is added. Overrides origin.").set("")
+    comment("正版验证 CDN 设置：支持 API 和 Session Server 使用不同的反代域名。")
+    node("enable").comment("是否启用 CDN。false 时忽略以下地址，直连 Mojang 官方服务。").set(false)
+    node("origin").comment(
+            "可选：兼容旧版的共用反代地址，会分别添加 /api 和 /sessionserver。\n" +
+                    "使用独立域名时可以留空；所有地址均为空的服务会直连 Mojang。"
+    ).set("")
+    node("api-origin").comment(
+            "api.mojang.com 的反代基础 URL，例如 https://api.mojang.com.example.com。\n" +
+                    "不自动添加 /api；非空时覆盖 origin，留空时回退到 origin/api。"
+    ).set("")
+    node("sessionserver-origin").comment(
+            "sessionserver.mojang.com 的反代基础 URL，例如 https://sessionserver.mojang.example.com。\n" +
+                    "不自动添加 /sessionserver；非空时覆盖 origin，留空时回退到 origin/sessionserver。"
+    ).set("")
 }

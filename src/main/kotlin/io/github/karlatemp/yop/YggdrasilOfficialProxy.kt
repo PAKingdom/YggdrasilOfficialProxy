@@ -108,7 +108,7 @@ object YggdrasilOfficialProxy {
         }.getOrNull()
         val edited = conf != null && conf.node("edited").boolean
         if (!file.isFile || conf == null || !edited) {
-            output.println("# YggdrasilOfficialProxy v2.0.0")
+            output.println("# YggdrasilOfficialProxy v2.3.1")
             output.println("# #############################")
             output.println("# Oops.")
             output.println(when {

@@ -1,4 +1,4 @@
-# YggdrasilOfficialProxy v2.3.0
+# YggdrasilOfficialProxy v2.3.1
 
 - Power by kotlin.
 - Configuration powered by [@SpongePowered/Configure](https://github.com/SpongePowered/Configurate)
@@ -9,19 +9,36 @@
 
 > [!NOTE]
 >
-> YggdrasilOfficeProxy 已经弃用, 请考虑使用 https://github.com/YggdrasilGateway/YggdrasilGateway
+> 上游 YggdrasilOfficialProxy 已宣布弃用，后继项目为 [YggdrasilGateway](https://github.com/YggdrasilGateway/YggdrasilGateway)。
+> 本仓库是基于原版 2.3.0 的修改分支，2.3.1 的改动如下。
 
+# 相比原版 2.3.0 的改动
+
+| 项目 | 原版 2.3.0 | 本分支 2.3.1 |
+| --- | --- | --- |
+| CDN 域名 | 只能填写一个 `CDN.origin` | 新增 `CDN.api-origin` 和 `CDN.sessionserver-origin`，可分别填写两个反代域名 |
+| 独立地址的请求路径 | 共用地址后自动添加 `/api` 或 `/sessionserver` | 独立地址直接作为对应服务的基础 URL，不额外添加这两层目录 |
+| 旧配置兼容 | 共用 `origin` 按路径区分两个服务 | 保留原有行为，独立地址非空时优先；无需删除旧配置 |
+| 地址处理 | 未填写协议时使用 HTTP | 保留默认 HTTP，去除地址首尾空白及末尾斜杠，支持显式路径前缀 |
+| 配置模板与注释 | 普通启动仅生成单个 CDN 地址，向导不生成 CDN 配置 | 两种方式均生成完整的 CDN 字段，并附中文注释解释开关、路径和回退规则 |
+| 版本与验证 | 2.3.0 | 版本、JAR 文件名和首次配置提示统一为 2.3.1；增加 8 项 CDN 配置回归测试 |
+
+启用 CDN 后，各服务按“独立地址 → 共用 `origin` 加服务路径 → Mojang 官方地址”的顺序选择地址。
+关闭 CDN 时，两个服务均直连官方地址。
 
 # Downloading
-首先, 你需要前往 releases 下载你所需要的对应版本.
 
-我们提供了三个版本:
+前往 [v2.3.1 Release](https://github.com/PAKingdom/YggdrasilOfficialProxy/releases/tag/v2.3.1) 下载。
+三个 JAR 均支持双 CDN 域名，请按启动方式选择：
 
-- minecraft
-- paperclip
-- proxy
+| 下载 | 用途 |
+| --- | --- |
+| [YggdrasilOfficialProxy-2.3.1-paperclip.jar](https://github.com/PAKingdom/YggdrasilOfficialProxy/releases/download/v2.3.1/YggdrasilOfficialProxy-2.3.1-paperclip.jar) | 随 Minecraft 服务器以 `-javaagent:...` 加载，携带较完整的依赖，通常推荐此版本 |
+| [YggdrasilOfficialProxy-2.3.1-proxy.jar](https://github.com/PAKingdom/YggdrasilOfficialProxy/releases/download/v2.3.1/YggdrasilOfficialProxy-2.3.1-proxy.jar) | 以 `java -jar ...` 单独运行认证代理 |
+| [YggdrasilOfficialProxy-2.3.1-minecraft.jar](https://github.com/PAKingdom/YggdrasilOfficialProxy/releases/download/v2.3.1/YggdrasilOfficialProxy-2.3.1-minecraft.jar) | 精简依赖的 `-javaagent:...` 版本，需要 Minecraft 服务端提供部分依赖 |
 
-请根据需要使用对应的版本
+从原版升级时，替换所用版本的 JAR，并同步更新启动脚本中的文件名。
+保留 `YggdrasilOfficialProxy.conf`；需要双域名时参考下方 [CDN 配置](#cdn) 添加两个字段，保持 `edited=true`，然后重启。
 
 # 向导模式
 
@@ -33,7 +50,7 @@
 
 
 # Booting
-我们提供了三种启动方式, 作为 agent 加载和 作为独立服务器 加载
+我们提供了两种启动方式：作为 agent 加载，或作为独立服务器运行。
 
 ## Proxy Booting
 Proxy Edition, 是以一个独立服务器的方式运行的, 他的好处在于:
@@ -97,7 +114,7 @@ java -javaagent:authlib-injector.jar=http://192.168.78.34:30500 ....
 首先我们需要打开我们的服务器启动脚本
 
 假设(假设!只是假设!)
-- 我们的 YggdrasilOfficialProxy AgentEdition 叫做 `YggdrasilOfficialProxy-2.0.0-paperclip.jar`
+- 我们的 YggdrasilOfficialProxy AgentEdition 叫做 `YggdrasilOfficialProxy-2.3.1-paperclip.jar`
 - 我们的 AuthLib Injector 叫做 `authlib-injector-1.1.26-41a7a47.jar`
 - 我们使用的 Yggdrasil API Root 为 `https://skin.prinzeugen.net/api/yggdrasil`
 
@@ -115,7 +132,7 @@ java -javaagent:authlib-injector-1.1.26-41a7a47.jar=https://skin.prinzeugen.net/
 然后, 我们需要直接把原来的 `-javaagent:authlib-injector-1.1.26-41a7a47.jar=https://skin.prinzeugen.net/api/yggdrasil` 删掉.
 对,删掉, 一点都不要留, 然后换上我们的配置
 ```shell script
-java -javaagent:YggdrasilOfficialProxy-2.0.0-paperclip.jar ....
+java -javaagent:YggdrasilOfficialProxy-2.3.1-paperclip.jar ....
 ```
 然后直接启动服务器, 对, 直接启动服务器, 我们需要生成 YggdrasilOfficialProxy 的服务器,
 如果你写了自动重启, 记得, 在第一次启动后, 关掉. 虽然不关也没问题.
@@ -176,14 +193,19 @@ proxy {
 # CDN
 
 由于中国大陆部分地区访问 `mojang` 官方验证服务器较慢或无法连接  
-特此在 `2.3.0` 版本加入CDN加速功能  可以通过CDN镜像链接加速官方验证  
-API 和 Session Server 可以分别使用不同的 CDN 域名。在现有配置文件的 `CDN` 中添加以下字段即可，无需删除配置文件：
+原版 `2.3.0` 加入了单地址 CDN 加速，本分支 `2.3.1` 支持 API 和 Session Server 使用不同的 CDN 域名。
+在现有配置文件的 `CDN` 中添加以下字段即可，无需删除配置文件：
 
 ```hocon
 CDN {
+    # 启用 CDN；false 时忽略所有反代地址，直连官方服务
     enable=true
+    # api.mojang.com 的反代基础 URL，不会额外添加 /api
     api-origin="https://api.mojang.com.example.com"
+    # sessionserver.mojang.com 的反代基础 URL，不会额外添加 /sessionserver
     sessionserver-origin="https://sessionserver.mojang.example.com"
+    # 可选：旧版共用地址；使用两个独立地址时可留空
+    origin=""
 }
 ```
 
@@ -197,6 +219,9 @@ CDN {
 允许 URL 末尾带 `/`，也可以显式包含反代所需的路径前缀。
 启用 CDN 时，各服务优先使用自己的非空字段；未填写的服务会回退到旧 `origin` 加对应路径，
 如果 `origin` 也为空则直连该服务的 Mojang 官方地址。`enable=false` 时两个服务均直连官方地址。
+
+首次启动和 `setup` 向导生成的配置都包含上述四个字段及中文说明，默认 `enable=false`，三个地址均为空。
+已有配置的注释不会自动改写，可以直接参考上述示例手动添加新字段。
 
 原来的单域名、按路径反代方式仍然兼容：
 
@@ -220,6 +245,20 @@ location /api/ {
 ```
 配置完成后将你的服务器基础 URL 填入 `origin` 字段并将 `enable` 改成 `true` 即可。
 这种方式仍会请求 `origin/api/...` 和 `origin/sessionserver/...`。
+
+# 从源码构建
+
+使用 JDK 11 和仓库自带的 Gradle Wrapper：
+
+```shell
+# Linux / macOS
+./gradlew test standardShadowJar shadowJar shadowPaperclip
+
+# Windows
+gradlew.bat test standardShadowJar shadowJar shadowPaperclip
+```
+
+三个发行版 JAR 输出到 `build/libs/`，文件名均包含 `2.3.1`。
 
 # 交流群
 QQ Group: `832210691`
