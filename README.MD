@@ -177,12 +177,34 @@ proxy {
 
 由于中国大陆部分地区访问 `mojang` 官方验证服务器较慢或无法连接  
 特此在 `2.3.0` 版本加入CDN加速功能  可以通过CDN镜像链接加速官方验证  
-如从低版本升级请手动删除配置文件并重新生成
+API 和 Session Server 可以分别使用不同的 CDN 域名。在现有配置文件的 `CDN` 中添加以下字段即可，无需删除配置文件：
+
+```hocon
+CDN {
+    enable=true
+    api-origin="https://api.mojang.com.example.com"
+    sessionserver-origin="https://sessionserver.mojang.example.com"
+}
 ```
+
+这两个字段直接填写各自反代的基础 URL，程序不会额外添加 `/api` 或 `/sessionserver`。
+上述配置实际请求的地址分别为：
+
+- `https://api.mojang.com.example.com/profiles/minecraft`
+- `https://sessionserver.mojang.example.com/session/minecraft/hasJoined`
+
+请保留 `https://` 或 `http://` 协议前缀；省略时兼容旧行为，使用 `http://`。
+允许 URL 末尾带 `/`，也可以显式包含反代所需的路径前缀。
+启用 CDN 时，各服务优先使用自己的非空字段；未填写的服务会回退到旧 `origin` 加对应路径，
+如果 `origin` 也为空则直连该服务的 Mojang 官方地址。`enable=false` 时两个服务均直连官方地址。
+
+原来的单域名、按路径反代方式仍然兼容：
+
+```hocon
 # CDN settings
 CDN {
     enable=true
-    origin="CDN origin link"
+    origin="https://cdn.example.com"
 }
 ```
 好了, 现在配置文件有了如何配置一个加速源呢  
@@ -196,7 +218,8 @@ location /api/ {
     proxy_pass https://api.mojang.com/;
 }
 ```
-配置完成后将你的服务器 ip/域名 填入 `origin` 字段并将 `enable` 改成 `true` 即可
+配置完成后将你的服务器基础 URL 填入 `origin` 字段并将 `enable` 改成 `true` 即可。
+这种方式仍会请求 `origin/api/...` 和 `origin/sessionserver/...`。
 
 # 交流群
 QQ Group: `832210691`

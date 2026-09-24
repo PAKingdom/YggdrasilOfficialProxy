@@ -44,6 +44,8 @@ dependencies {
     // https://mvnrepository.com/artifact/org.fusesource.jansi/jansi
     implementation group: 'org.fusesource.jansi', name: 'jansi', version: '2.3.2'
 
+    testImplementation 'junit:junit:4.13.2'
+
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {

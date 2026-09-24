@@ -369,6 +369,7 @@ fun startSetup() {
                         root.node("official-first").set(officialFirst)
                         root.node("server", "host").set(host)
                         root.node("server", "port").set(port)
+                        root.node("CDN").setCdnDefaults()
                         fun saveProxy(node: ConfigurationNode, m: Map<String, Any>) {
                             m.forEach { (t, u) ->
                                 node.node(t).set(u)

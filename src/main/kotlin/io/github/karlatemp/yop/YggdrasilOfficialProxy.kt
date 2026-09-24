@@ -61,30 +61,9 @@ object YggdrasilOfficialProxy {
     lateinit var yggdrasilClient: HttpClient
     lateinit var officialClient: HttpClient
 
-    val hasJoin by lazy {
-        buildString { // Skip AuthLib Injector
-            if (CDN_enable) {
-                append(CDN_origin_link)
-                append("/sessionserver")
-            } else {
-                append("https://sessionserver.")
-                append("mojang.com")
-            }
-            append("/session/minecraft/hasJoined")
-        }
-    }
-    val profilesMinecraft by lazy {
-        buildString { // Skip AuthLib Injector\
-            if (CDN_enable) {
-                append(CDN_origin_link)
-                append("/api")
-            } else {
-                append("https://api.")
-                append("mojang.com")
-            }
-            append("/profiles/minecraft")
-        }
-    }
+    private var officialEndpoints = OfficialEndpoints(CommentedConfigurationNode.root())
+    val hasJoin get() = officialEndpoints.hasJoined
+    val profilesMinecraft get() = officialEndpoints.profilesMinecraft
 
     val output = System.out
 
@@ -93,8 +72,6 @@ object YggdrasilOfficialProxy {
     var host_C = "0.0.0.0"
     var port_C = 32217
     var authlib by AtomicReference<String?>()
-    var CDN_enable = false
-    var CDN_origin_link = ""
 
     var daemon = false
     val threadFactory by lazy {
@@ -204,13 +181,7 @@ object YggdrasilOfficialProxy {
                         it.substring(0, it.length - 1)
                     else it
                 }
-        conf.node("CDN").apply {
-            CDN_enable = node("enable").boolean
-            CDN_origin_link = node("origin").getString("")
-            if (!(CDN_origin_link.startsWith("http://") || CDN_origin_link.startsWith("https://"))) {
-                CDN_origin_link = "http://$CDN_origin_link"
-            }
-        }
+        officialEndpoints = OfficialEndpoints(conf.node("CDN"))
 
         if (conf != loader.load()) {
             loader.save(conf)
@@ -287,10 +258,7 @@ object YggdrasilOfficialProxy {
 
                     }
             )
-            node("CDN").setCV("CDN settings", createNode().apply {
-                node("enable").set(false)
-                node("origin").set("CDN origin link")
-            })
+            node("CDN").setCdnDefaults()
         })
     }
 
